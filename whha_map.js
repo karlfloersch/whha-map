@@ -67,30 +67,40 @@ function drawBackground() {
 
 
 function addMarkers() {
+	var addIconBgHTML = '<span class="icon-background"'
+					+ '" style="left:' + (jamesMapCoordinates[0].x-mapPos.x) * c.width
+					+ 'px; top:' + (jamesMapCoordinates[0].y-mapPos.y) * c.height
+					+ 'px; width:' + (.23 * c.width)
+					+ 'px; height:' + (.05 * c.height)
+					+ 'px;" id="' + jamesMapCoordinates[0].id + '-bg"></div>';
+
 	var addIconHTML = '<img src="' + jamesMapCoordinates[0].src
 					+ '" style="left:' + (jamesMapCoordinates[0].x-mapPos.x) * c.width
 					+ 'px; top:' + (jamesMapCoordinates[0].y-mapPos.y) * c.height
-					+ '" width="' + (.28 * c.width)
-					+ '" height="' + (.1 * c.height)
+					+ 'px;" width="' + (.2 * c.width)
+					+ '" height="' + (.05 * c.height)
 					+ '" id="' + jamesMapCoordinates[0].id + '">';
 
+	$("#map-container").append(addIconBgHTML);			
 	$("#map-container").append(addIconHTML);
+
 	console.log("x " + (jamesMapCoordinates[0].x-mapPos.x) + " y " + (jamesMapCoordinates[0].y-mapPos.y));
 	$("#" + jamesMapCoordinates[0].id).click(function(){
-		moveMapTo(-jamesMapCoordinates[0].x + .1, -jamesMapCoordinates[0].y + .2, this);
+		moveMapTo(-jamesMapCoordinates[0].x + .1, -jamesMapCoordinates[0].y + .2);
 	});
 }
 
 function removeMarkers() {
 	$("#" + jamesMapCoordinates[0].id).remove();
+	$("#" + jamesMapCoordinates[0].id + "-bg").remove();
 }
 
 // TODO: Remove tempElement and instead itterrate over all elements
-function moveMapTo(xPos, yPos, tempElement) {
-	console.log("Target x: " + xPos + " Target y: " + yPos + "\n"
-		+ "Current x: " + mapPos.x + " Current y: " + mapPos.y);
+function moveMapTo(xPos, yPos) {
+	
 	setTimeout(function () {
 		var isDone = true;
+
 		if (xPos - mapPos.x > .01){
 			mapPos.x += .0005 + (xPos-mapPos.x)*.1;
 			isDone = false;
@@ -111,13 +121,15 @@ function moveMapTo(xPos, yPos, tempElement) {
 		ctx.drawImage(imageList[0], mapPos.x*c.width, (mapPos.y-.13)*c.height, 1.5*c.width, 1.44*c.height);
 		ctx.drawImage(imageList[1], 0, 0, c.width, .078 * c.height);
 		ctx.drawImage(imageList[2], 0, .9*c.height, c.width, .1*c.height);
-		// $(tempElement).css({left:(jamesMapCoordinates[0].x+mapPos.x) * c.width,
-		// 	top:(jamesMapCoordinates[0].y+mapPos.y) * c.height});
-		$(tempElement).css("left", (jamesMapCoordinates[0].x+mapPos.x) * c.width);
-		$(tempElement).css("top",(jamesMapCoordinates[0].y+mapPos.y) * c.height);
+
+		$("#"+jamesMapCoordinates[0].id).css("left", (jamesMapCoordinates[0].x+mapPos.x) * c.width);
+		$("#"+jamesMapCoordinates[0].id).css("top",(jamesMapCoordinates[0].y+mapPos.y) * c.height);
+
+		$("#"+jamesMapCoordinates[0].id+"-bg").css("left", (jamesMapCoordinates[0].x+mapPos.x) * c.width);
+		$("#"+jamesMapCoordinates[0].id+"-bg").css("top",(jamesMapCoordinates[0].y+mapPos.y) * c.height);
 
 		if (!isDone){
-			moveMapTo(xPos, yPos, tempElement);
+			moveMapTo(xPos, yPos);
 		}else{
 			showContentBox();
 		}
@@ -126,7 +138,33 @@ function moveMapTo(xPos, yPos, tempElement) {
 }
 
 function showContentBox() {
-	$("#map-container").append('<div id="content-box"></div>');
+	setTimeout(function () {
+
+		var isWidthDone = true;
+		var isHeightDone = true;
+
+		var w = $("#"+jamesMapCoordinates[0].id+"-bg").width();
+		var h = $("#"+jamesMapCoordinates[0].id+"-bg").height();
+
+		if(w < .79 * c.width){
+			w += .00001 * c.width + (c.width-w)*.01;
+			isWidthDone = false;
+			isHeightDone = false;
+		}
+		if(h < .53 * c.height && isWidthDone){
+			h += .00001 * c.height + (c.height-h)*.01;
+			isHeightDone = false;
+		}
+
+		$("#"+jamesMapCoordinates[0].id+"-bg").width(w);
+		$("#"+jamesMapCoordinates[0].id+"-bg").height(h);
+
+		
+		if (!isWidthDone || !isHeightDone){
+			showContentBox();
+		}else{
+		}
+	}, 10);
 }
 
 function scaleMap() {

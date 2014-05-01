@@ -5,7 +5,7 @@
 	depending on the size of the actual canvas element.
 */
 var jamesMapCoordinates = [{
-	"src" : "images/i-conns_ferry.png",
+	"src" : "images/i-conns_ferry_min.png",
 	"id" : "conns_ferry",
 	"x" : .22,
 	"y" : .23
