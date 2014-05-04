@@ -147,12 +147,12 @@ function showContentBox() {
 		var h = $("#"+jamesMapCoordinates[0].id+"-bg").height();
 
 		if(w < .79 * c.width){
-			w += .00001 * c.width + (c.width-w)*.01;
+			w += .001 * c.width + (c.width-w)*.01;
 			isWidthDone = false;
 			isHeightDone = false;
 		}
 		if(h < .53 * c.height && isWidthDone){
-			h += .00001 * c.height + (c.height-h)*.01;
+			h += .001 * c.height + (c.height-h)*.01;
 			isHeightDone = false;
 		}
 
