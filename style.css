@@ -1,12 +1,20 @@
-
+@font-face
+{
+font-family: Goudy;
+src: url("fonts/goudyo.ttf");
+}
 
 .icon-background {
 	background-image:url("images/tile-paper-bg.jpg");
 	position: absolute;
 	z-index: 1;
+	font-family: Goudy;
 	box-shadow: 0px 0px 5px 2px #888888;
 }
-
+.icon-background h3 {
+	position: absolute;
+	font-family: Goudy;
+}
 #title {
 	text-align: center;
 }

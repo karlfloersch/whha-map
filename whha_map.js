@@ -12,6 +12,8 @@ var imageList = [];
 var c;
 var ctx;
 
+var mapIconPath = "images/map-icon.gif";
+
 var mapPos = {
 	"x" : 0,
 	"y" : 0
@@ -67,22 +69,46 @@ function drawBackground() {
 
 
 function addMarkers() {
-	var addIconBgHTML = '<span class="icon-background"'
-					+ '" style="left:' + (jamesMapCoordinates[0].x-mapPos.x) * c.width
-					+ 'px; top:' + (jamesMapCoordinates[0].y-mapPos.y) * c.height
-					+ 'px; width:' + (.23 * c.width)
-					+ 'px; height:' + (.05 * c.height)
-					+ 'px;" id="' + jamesMapCoordinates[0].id + '-bg"></div>';
+	
+	var $panelIcon = $('<img>')
+		.attr('src', mapIconPath)
+		.attr('width', (.045 * c.width))
+		.attr('height', (.05 * c.height));
 
-	var addIconHTML = '<img src="' + jamesMapCoordinates[0].src
-					+ '" style="left:' + (jamesMapCoordinates[0].x-mapPos.x) * c.width
-					+ 'px; top:' + (jamesMapCoordinates[0].y-mapPos.y) * c.height
-					+ 'px;" width="' + (.2 * c.width)
-					+ '" height="' + (.05 * c.height)
-					+ '" id="' + jamesMapCoordinates[0].id + '">';
+	var $panelTitle = $('<h3>')
+		.css({
+			left: (.05 * c.width),
+			top: (-.025 * c.height),
+		}).append(jamesMapCoordinates[0].title);
 
-	$("#map-container").append(addIconBgHTML);			
-	$("#map-container").append(addIconHTML);
+	var $contentPanel = $('<span>')
+		.attr('class', 'icon-background')
+		.attr('id', jamesMapCoordinates[0].id)
+		.css({
+			left: (jamesMapCoordinates[0].x-mapPos.x) * c.width,
+			top: (jamesMapCoordinates[0].y-mapPos.y) * c.height,
+			width: (.23 * c.width),
+			height: (.05 * c.height),
+			"font-size": (.025 * c.height)
+		});
+
+	$contentPanel.append($panelIcon);
+	$contentPanel.append($panelTitle);
+
+
+	// var addIconBgHTML = '<span class="icon-background"'
+	// 				+ '" style="left:' + (jamesMapCoordinates[0].x-mapPos.x) * c.width
+	// 				+ 'px; top:' + (jamesMapCoordinates[0].y-mapPos.y) * c.height
+	// 				+ 'px; width:' + (.23 * c.width)
+	// 				+ 'px; height:' + (.05 * c.height)
+	// 				+ 'px; font-size:' + (.025 * c.height)
+	// 				+ 'px;" id="' + jamesMapCoordinates[0].id + '">'
+	// 				+ addIconHTML + addTitleHTML + '</div>';
+
+	
+
+	$("#map-container").append($contentPanel);			
+	// $("#map-container").append(addIconHTML);
 
 	console.log("x " + (jamesMapCoordinates[0].x-mapPos.x) + " y " + (jamesMapCoordinates[0].y-mapPos.y));
 	$("#" + jamesMapCoordinates[0].id).click(function(){
@@ -134,7 +160,14 @@ function moveMapTo(xPos, yPos) {
 			showContentBox();
 		}
 	}, 10);
-	//console.log(mapPos.x + " " + mapPos.y);
+	//console.log(mapPos.x + " " + mapPos.y); 370  x 100
+}
+
+var fullContentBox = {
+	"width" : 0.79,
+	"height" : 0.53,
+	"steadyVel" : .002,
+	"scaledVel" : .08
 }
 
 function showContentBox() {
@@ -146,13 +179,17 @@ function showContentBox() {
 		var w = $("#"+jamesMapCoordinates[0].id+"-bg").width();
 		var h = $("#"+jamesMapCoordinates[0].id+"-bg").height();
 
-		if(w < .79 * c.width){
-			w += .001 * c.width + (c.width-w)*.01;
+		console.log("w: " + w + " contentBoxW: " + fullContentBox.width);
+
+		if(w < fullContentBox.width * c.width){
+			w += fullContentBox.steadyVel * c.width + 
+				(fullContentBox.width*c.width-w)*fullContentBox.scaledVel;
 			isWidthDone = false;
 			isHeightDone = false;
 		}
-		if(h < .53 * c.height && isWidthDone){
-			h += .001 * c.height + (c.height-h)*.01;
+		if(h < fullContentBox.height * c.height && isWidthDone){
+			h += fullContentBox.steadyVel * c.height + 
+			(fullContentBox.height*c.height-h)*fullContentBox.scaledVel;
 			isHeightDone = false;
 		}
 

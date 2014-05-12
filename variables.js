@@ -6,6 +6,7 @@
 */
 var jamesMapCoordinates = [{
 	"src" : "images/i-conns_ferry_min.png",
+	"title" : "Conns Ferry",
 	"id" : "conns_ferry",
 	"x" : .22,
 	"y" : .23
