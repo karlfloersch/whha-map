@@ -1,5 +1,10 @@
 
 
+var starIcon = {
+	"width" : .043,
+	"height" : .05
+}
+
 /*
 	Coordinates range from 0-1000 and are scaled up or down
 	depending on the size of the actual canvas element.

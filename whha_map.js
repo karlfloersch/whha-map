@@ -5,6 +5,8 @@
 
 var loadedImagesCounter = 0;
 var imageList = [];
+var mapsList = [];
+var mapsDict = {};
 var c;
 var ctx;
 
@@ -12,6 +14,7 @@ var jamesMapLength = jamesMapCoordinates.length;
 
 
 var mapIconPath = "images/map-icon.gif";
+var mapImagePath = "images/temp-map.jpg";
 
 var mapPos = {
 	"x" : 0,
@@ -34,35 +37,39 @@ $(document).ready(function(){
 	mapImage.src = "images/temp-map.jpg";
 	imageList.push(mapImage);
 
-	var bannerTop = new Image();
-	bannerTop.onload = function(){
-		imageLoadedCounter();
-	};
-	bannerTop.src = "images/banner-top.jpg";
-	imageList.push(bannerTop);
-
-	var bannerBottom = new Image();
-	bannerBottom.onload = function(){
-		imageLoadedCounter();
-	};
-	bannerBottom.src = "images/banner-bottom.jpg";
-	imageList.push(bannerBottom);
 });
 
 // When all images are loaded, the magic starts
 function imageLoadedCounter(){
 	loadedImagesCounter ++;
 
-	if(loadedImagesCounter == 3){
+	if(loadedImagesCounter == 1){
 		drawBackground();
 		addMarkers();
 	}
 }
 
 function drawBackground() {
-	ctx.drawImage(imageList[0], mapPos.x, (mapPos.y-.13)*c.height, 1.5*c.width, 1.44*c.height);
-	ctx.drawImage(imageList[1], 0, 0, c.width, .078 * c.height);
-	ctx.drawImage(imageList[2], 0, .9*c.height, c.width, .1*c.height);
+	// TODO: Replace this with map class
+	var $map = $('<span>')
+		.attr('id', "map")
+		.css({
+			left: mapPos.x*c.width,
+			top: (mapPos.y-.13)*c.height,
+			width: (1.5*c.width),
+			height: (1.44*c.height)
+		});
+
+	var $mapImage = $('<img>')
+		.attr('src', mapImagePath)
+		.attr('id', "map-image")
+		.attr('width', (1.5*c.width))
+		.attr('height', (1.44*c.height));
+
+
+	$map.append($mapImage);
+	$("#map-container").append($map);
+
 }
 
 
@@ -72,45 +79,11 @@ function addMarkers() {
 
 
 	for (var i = 0; i < jamesMapLength; i++) {
-		var $panelIcon = $('<img>')
-			.attr('src', mapIconPath)
-			.attr('width', (.045 * c.width))
-			.attr('height', (.05 * c.height));
-    	var $panelTitle = $('<h5>')
-			.css({
-				left: (.075 * c.width),
-				top: (-.020 * c.height),
-			}).append(jamesMapCoordinates[i].title);
+		mapsList.push(new MapElement(jamesMapCoordinates[i]));
 
-		var $contentPanel = $('<span>')
-			.attr('class', 'icon-background')
-			.attr('id', jamesMapCoordinates[i].id)
-			.css({
-				left: (jamesMapCoordinates[i].x-mapPos.x) * c.width,
-				top: (jamesMapCoordinates[i].y-mapPos.y) * c.height,
-				width: (.23 * c.width),
-				height: (.05 * c.height),
-				"font-size": (.025 * c.height)
-			});
-
-		$contentPanel.append($panelIcon);
-		$contentPanel.append($panelTitle);
-		$("#map-container").append($contentPanel);
-
-		console.log(jamesMapCoordinates[i].x);
-
-		$("#" + jamesMapCoordinates[i].id).click(function(){
-			var id = $(this).attr('id');
-			for (var i = 0; i < jamesMapLength; i++) {
-				if(jamesMapCoordinates[i].id == id){
-					moveMapTo(i, -jamesMapCoordinates[i].x + .1, -jamesMapCoordinates[i].y + .2);
-				}
-			}
-		});
 	}
 				
 
-	// console.log("x " + (jamesMapCoordinates[0].x-mapPos.x) + " y " + (jamesMapCoordinates[0].y-mapPos.y));
 	
 
 
@@ -126,46 +99,14 @@ function moveMapTo(i, xPos, yPos) {
 	
 	setTimeout(function () {
 
-		var isDone = true;
-
-		if (xPos - mapPos.x > .01){
-			mapPos.x += .0005 + (xPos-mapPos.x)*.1;
-			isDone = false;
-		}else if(xPos - mapPos.x < -.01){
-			mapPos.x -= -.0005 - (xPos-mapPos.x)*.1;
-			isDone = false;
-		}
-		if (yPos - mapPos.y > .01){
-			mapPos.y += .0005 + (yPos-mapPos.y)*.1;
-			isDone = false;
-		}else if(yPos - mapPos.y < -.01){
-			mapPos.y -= -.0005 - (yPos-mapPos.y)*.1;
-			isDone = false;
-		}
-
-
-
-		ctx.drawImage(imageList[0], mapPos.x*c.width, (mapPos.y-.13)*c.height, 1.5*c.width, 1.44*c.height);
-		ctx.drawImage(imageList[1], 0, 0, c.width, .078 * c.height);
-		ctx.drawImage(imageList[2], 0, .9*c.height, c.width, .1*c.height);
-
-		for (var j = 0; j < jamesMapLength; j++) {
-			$("#"+jamesMapCoordinates[j].id).css("left", (jamesMapCoordinates[j].x+mapPos.x) * c.width);
-			$("#"+jamesMapCoordinates[j].id).css("top",(jamesMapCoordinates[j].y+mapPos.y) * c.height);
-			console.log(jamesMapCoordinates[j].id);
-		}
+		var isDone = false;
+		
 		if (!isDone){
 			moveMapTo(i, xPos, yPos);
 		}else{
-			for (var j = 0; j < jamesMapLength; j++) {
-				if(j != i){
-					$("#"+jamesMapCoordinates[j].id).fadeOut();
-				}
-			}
-			showContentBox(i);
+			// Finished the animation
 		}
 	}, 10);
-	//console.log(mapPos.x + " " + mapPos.y); 370  x 100
 }
 
 var fullContentBox = {
@@ -219,7 +160,73 @@ window.onresize = function () {
 // *****	MAP ELEMENT CLASS: USED FOR DISPLAYING HTML OVER THE MAP	***** //
 function MapElement (vars)
 {
+	this.title 	= 	vars.title;
+	this.id 	= 	vars.id;
+	this.pos 	= 	{"x" : vars.x, "y" : vars.y};
+	this.init();
+}
+MapElement.prototype.init = function ()
+{
+	var $panelIcon = $('<img>')
+		.attr('src', mapIconPath)
+		.attr('width', (starIcon.width * c.width))
+		.attr('height', (starIcon.height * c.height));
+
+	var $panelTitleContainer = $('<span>')
+		.attr('class', "title-text")
+		.css({
+			left: (.075 * c.width),
+			top: (-.020 * c.height)
+		});
+
+	var $panelTitle = $('<h5>')
+		.css({
+			left: (.075 * c.width),
+			top: (-.020 * c.height)
+		}).append(this.title);
+
+	var $contentPanel = $('<span>')
+		.attr('class', 'icon-background')
+		.attr('id', this.id)
+		.css({
+			left: (this.pos.x-mapPos.x) * c.width,
+			top: (this.pos.y-mapPos.y) * c.height,
+			width: (.23 * c.width),
+			height: (.05 * c.height),
+			"font-size": (.025 * c.height)
+		});
+
+	$contentPanel.append($panelIcon);
+	$contentPanel.append($panelTitle);
+	$("#map").append($contentPanel);
+
+	$("#" + this.id).click(this.onClk.bind(this));
+}
+MapElement.prototype.onClk = function()
+{
+	this.showPanel();
+}
+MapElement.prototype.showPanel = function ()
+{
+	var self = this;
 	
+	setTimeout(function () {
+		console.log(this.id);
+		var isDone = false;
+		mapPos.x -= 10;
+		$("#map").css({
+			left: mapPos.x
+		});
+		self.showPanel();
+
+		if (!isDone){
+		}else{
+			// Finished the animation
+		}
+	}, 10);
+}
+MapElement.prototype.hide = function ()
+{
 }
 
 
