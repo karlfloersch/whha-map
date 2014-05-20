@@ -1,7 +1,7 @@
 
 
 var starIcon = {
-	"width" : .043,
+	"width" : .039,
 	"height" : .05
 }
 

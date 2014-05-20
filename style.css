@@ -25,7 +25,7 @@ src: url("fonts/goudyo.ttf");
 #map-container {
 	position: relative;
 	text-align: left;
-	width: 90%;
+	width: 960px;
     margin: auto;
     overflow:hidden;
 }
