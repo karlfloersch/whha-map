@@ -17,7 +17,12 @@ var jamesMapLength = jamesMapCoordinates.length;
 
 var mapIconPath = "images/map-icon.gif";
 var selectedMapIconPath = "images/map-icon-selected.gif";
-var exitIconPath = "images/exit-button.gif"
+var exitIconPath = "images/exit-button.gif";
+var videoIconPath = "images/picon-video.gif";
+var audioIconPath = "images/picon-audio.gif";
+var slidesIconPath = "images/picon-slides.gif";
+var summaryIconPath = "images/picon-summary.gif";
+var googleMapIconPath = "images/picon-map.gif";
 var mapImagePath = "images/map.gif";
 
 var startingMapPos = {
@@ -134,20 +139,6 @@ function moveMapTo(xPos, yPos) {
 	}, 10);	
 }
 
-var fullContentBox = {
-	"width" : 0.85,
-	"height" : 0.59,
-	"steadyVel" : .003,
-	"scaledVel" : .08
-}
-
-var smallContentBox = {
-	"width" : 0.23,
-	"height" : 0.05,
-	"steadyVel" : -.003,
-	"scaledVel" : .08
-}
-
 
 // *****	MAP CLASS: USED DRAWING A MAP AND PATHS TO THE CANVAS	***** //
 function Map (x, y)
@@ -183,9 +174,13 @@ function MapElement (basicInfo, panelInfo)
 	this.title 	= 	basicInfo.title;
 	this.id 	= 	basicInfo.id;
 	this.imgId	= 	basicInfo.id + "-img";
-	this.panelId = 	basicInfo.id + "-content";
+	this.panelId = 	basicInfo.id + "-panel";
+	this.slidersId = basicInfo.id + "-content"
 	this.x 		=	basicInfo.x;
 	this.y 		= 	basicInfo.y;
+	this.sliderX = 	0;
+	this.sliderY = 	0.052;
+	this.isSliding = false;
 	this.panelInfo = panelInfo;
 	this.init();
 }
@@ -356,18 +351,20 @@ MapElement.prototype.hidePanel = function ()
 
 		var w = $("#"+self.id).width();
 		var h = $("#"+self.id).height();
-		console.log(w + " " + smallContentBox.width * c.width)
-		if(w > smallContentBox.width * c.width){
-			w += smallContentBox.steadyVel * c.width + 
-				(smallContentBox.width*c.width-w)*smallContentBox.scaledVel;
-			isWidthDone = false;
-			isHeightDone = false;
-		}
-		if(h > smallContentBox.height * c.height && isWidthDone){
+
+		if(h > smallContentBox.height * c.height){
 			h += smallContentBox.steadyVel * c.height + 
 			(smallContentBox.height*c.height-h)*smallContentBox.scaledVel;
 			isHeightDone = false;
+			isWidthDone = false;
 		}
+
+		if(w > smallContentBox.width * c.width  && isHeightDone){
+			w += smallContentBox.steadyVel * c.width + 
+				(smallContentBox.width*c.width-w)*smallContentBox.scaledVel;
+			isWidthDone = false;
+		}
+		
 
 		$("#"+self.id).width(w);
 		$("#"+self.id).height(h);
@@ -425,22 +422,269 @@ MapElement.prototype.buildContentPane = function ()
 			left : (exitIcon.left * c.width),
 			top : (exitIcon.top * c.height)
 		});
-
 	$exitButton.click(this.closePanel.bind(this));
 	$contentPanelBody.append($exitButton);
 
+	$("#" + this.id).append($contentPanelBody);
 
 
+	// FIRST BUILD THE SLIDER BUTTONS
+	this.buildSliderButtons();
+
+	// NEXT BUILD THE CONTENT WINDOWS
+	this.buildSliderWindows();
 	
 
 
+	
+}
+MapElement.prototype.buildSliderWindows = function ()
+{
+	var $panelBody = $('<span>')
+		.attr('id', this.slidersId)
+		.css({
+			top: this.sliderY * c.height,
+			width : (slider.width * c.width),
+			height : (slider.height * c.height),
+			'background-color'	: '#f5f3ea',
+			position : 'absolute'
+		});
+
+
+	// **** Video Slide **** //
+	var $videoSlide = $('<span>')
+	.css({
+		left : (this.sliderX + 0*slider.offset) * c.width,
+		position : "absolute"
+	});
+
+	var videoHTML = '<iframe width="'+ videoPlayer.width * c.width +
+	'" height="' + videoPlayer.height * c.height +
+	'" src="' + this.panelInfo.video_src +
+	'" frameborder="0" allowfullscreen></iframe>';
+
+	setTimeout(function () {
+		$videoSlide.append(videoHTML);
+	}, 700);
+
+	$panelBody.append($videoSlide);
+	// ^^^^ Video Slide ^^^^ //
 
 
 
-	$("#" + this.id).append($contentPanelBody);
+	// **** Audio Slide **** //
+	var $audioSlide = $('<span>')
+	.css({
+		left : (this.sliderX  + 1*slider.offset) * c.width,
+		width : (slider.width * c.width),
+		height : (slider.height * c.height),
+		'background-color'	: '#f5f3ea',
+		position : "absolute"
+	});
+
+	var audioHTML = '<iframe width="'+ videoPlayer.width * c.width +
+	'" height="' + videoPlayer.height * c.height +
+	'" src="' + this.panelInfo.audio_src +
+	'" frameborder="0" allowfullscreen></iframe>';
+
+	setTimeout(function () {
+		$audioSlide.append(audioHTML);
+	}, 750);
+
+	$panelBody.append($audioSlide);
+	// ^^^^ Audio Slide ^^^^ //
+
+	// **** Slides Slide **** //
+	var $slidesSlide = $('<span>')
+	.css({
+		left : (this.sliderX  +2*slider.offset) * c.width,
+		width : ((slider.width - 2*slider.paddingSize) * c.width),
+		height : ((slider.height  - 2*slider.paddingSize) * c.height),
+		'background-color'	: '#f5f3ea',
+		'padding-x' : (slider.paddingSize * c.width),
+		'padding-y' : (slider.paddingSize * c.height),
+		"overflow-y" : "scroll",
+		padding : "10px",
+		color : "#222222",
+		position : "absolute"
+	});
+
+	$slidesSlide.append(this.panelInfo.summary_text);
+
+	$panelBody.append($slidesSlide);
+	// ^^^^ Slides Slide ^^^^ //
+
+
+
+	// **** Summary Slide **** //
+	var $slidesSlide = $('<span>')
+	.css({
+		left : (this.sliderX  +3*slider.offset) * c.width,
+		width : ((slider.width - 2*slider.paddingSize) * c.width),
+		height : ((slider.height  - 2*slider.paddingSize) * c.height),
+		'background-color'	: '#f5f3ea',
+		'padding-x' : (slider.paddingSize * c.width),
+		'padding-y' : (slider.paddingSize * c.height),
+		"overflow-y" : "scroll",
+		padding : "10px",
+		color : "#222222",
+		position : "absolute"
+	});
+
+	$slidesSlide.append(this.panelInfo.summary_text);
+
+	$panelBody.append($slidesSlide);
+	// ^^^^ Summary Slide ^^^^ //
+
+
+	// **** Map Slide **** //
+	var $mapSlide = $('<span>')
+	.css({
+		left : (this.sliderX + 4*slider.offset) * c.width,
+		position : "absolute"
+	});
+
+	var mapHTML = '<iframe width="'+ videoPlayer.width * c.width +
+	'" height="' + videoPlayer.height * c.height +
+	'" src="' + this.panelInfo.map_src +
+	'" frameborder="0" style="border:0"></iframe>';
+
+	setTimeout(function () {
+		$mapSlide.append(mapHTML);
+	}, 900);
+
+	$panelBody.append($mapSlide);
+	// ^^^^ Map Slide ^^^^ //
+
+
+	$("#"+this.panelId).append($panelBody);
+
+
+}
+MapElement.prototype.moveSlider = function (slideIndex)
+{
+	var self = this;
+
+	xPos = -slider.offset * slideIndex;
+
+	self.isSliding = true;
+
+	setTimeout(function () {
+		var isDone = true;
+
+		if (xPos - self.sliderX > .005){
+			self.sliderX += .007 + (xPos-self.sliderX)*.1;
+			isDone = false;
+		}else if(xPos - self.sliderX < -.005){
+			self.sliderX -= .007 - (xPos-self.sliderX)*.1;
+			isDone = false;
+		}else{
+			self.sliderX = xPos;
+		}
+
+		self.drawSliders();
+		
+		if (!isDone){
+			self.moveSlider(slideIndex)
+		}else{
+			// I'm done!
+			self.isSliding = false;
+		}
+	}, 10);
+}
+MapElement.prototype.buildSliderButtons = function ()
+{
+	var $contentPanelBody = $("#"+this.panelId);
+
+	var $videoButton = $('<img>')
+		.attr('src', videoIconPath)
+		.attr('width', (videoIcon.width * c.width))
+		.attr('height', (videoIcon.height * c.height))
+		.css({
+			left : (videoIcon.left * c.width),
+			top : (videoIcon.top * c.height)
+		});
+
+	// $videoButton.click(this.moveSlider.bind(this, slideIndex = 0));
+
+	$videoButton.click(function(){
+		if(!this.isSliding)
+			this.moveSlider(0);
+	}.bind(this));
+
+	$contentPanelBody.append($videoButton);
+
+	var $audioButton = $('<img>')
+		.attr('src', audioIconPath)
+		.attr('width', (audioIcon.width * c.width))
+		.attr('height', (audioIcon.height * c.height))
+		.css({
+			left : (audioIcon.left * c.width),
+			top : (audioIcon.top * c.height)
+		});
+
+	$audioButton.click(function(){
+		if(!this.isSliding)
+			this.moveSlider(1);
+	}.bind(this));
+	$contentPanelBody.append($audioButton);
+
+	var $slidesButton = $('<img>')
+		.attr('src', slidesIconPath)
+		.attr('width', (slidesIcon.width * c.width))
+		.attr('height', (slidesIcon.height * c.height))
+		.css({
+			left : (slidesIcon.left * c.width),
+			top : (slidesIcon.top * c.height)
+		});
+
+	$slidesButton.click(function(){
+		if(!this.isSliding)
+			this.moveSlider(2);
+	}.bind(this));
+	$contentPanelBody.append($slidesButton);
+
+	var $summaryButton = $('<img>')
+		.attr('src', summaryIconPath)
+		.attr('width', (summaryIcon.width * c.width))
+		.attr('height', (summaryIcon.height * c.height))
+		.css({
+			left : (summaryIcon.left * c.width),
+			top : (summaryIcon.top * c.height)
+		});
+
+	$summaryButton.click(function(){
+		if(!this.isSliding)
+			this.moveSlider(3);
+	}.bind(this));
+	$contentPanelBody.append($summaryButton);
+
+	var $googleMapButton = $('<img>')
+		.attr('src', googleMapIconPath)
+		.attr('width', (googleMapIcon.width * c.width))
+		.attr('height', (googleMapIcon.height * c.height))
+		.css({
+			left : (googleMapIcon.left * c.width),
+			top : (googleMapIcon.top * c.height)
+		});
+
+	$googleMapButton.click(function(){
+		if(!this.isSliding)
+			this.moveSlider(4);
+	}.bind(this));
+	$contentPanelBody.append($googleMapButton);
+
+
+}
+MapElement.prototype.drawSliders = function ()
+{
+	$("#" + this.slidersId).css({
+		"left" : this.sliderX * c.width
+	});
 }
 MapElement.prototype.destroyContentPane = function ()
 {
+	this.sliderX = 0;
 	$("#"+this.panelId).remove();
 }
 

@@ -20,6 +20,9 @@ src: url("fonts/goudyo.ttf");
 	font-family: Goudy;
 	text-align: center;
 }
+.absolute-pos {
+	position: absolute;
+}
 #title {
 	text-align: center;
 }
